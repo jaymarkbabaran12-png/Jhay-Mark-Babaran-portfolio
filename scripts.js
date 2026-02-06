@@ -127,3 +127,30 @@ hamburger.addEventListener('click', () => {
         navLinks.style.textAlign = 'center';
     }
 });
+// 4. Animate Skill Bars on Scroll
+const skillBarsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            // Animate progress bars
+            const progressFills = entry.target.querySelectorAll('.progress-fill');
+            progressFills.forEach(fill => {
+                const width = fill.getAttribute('data-width');
+                fill.style.setProperty('--skill-width', width + '%');
+                fill.classList.add('animated');
+            });
+            
+            // Animate learning fills
+            const learningFills = entry.target.querySelectorAll('.learning-fill');
+            learningFills.forEach(fill => {
+                const width = fill.getAttribute('data-width');
+                fill.style.setProperty('--learning-width', width + '%');
+                fill.classList.add('animated');
+            });
+        }
+    });
+}, { threshold: 0.3 });
+
+const skillBarsContainer = document.querySelector('.skill-bars-container');
+if (skillBarsContainer) {
+    skillBarsObserver.observe(skillBarsContainer);
+}
