@@ -1,7 +1,6 @@
 // 1. Background Particle Animation
 const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d');
-
 let particlesArray;
 
 // Resize canvas
@@ -17,14 +16,14 @@ class Particle {
         this.size = size;
         this.color = color;
     }
-    // Draw particle
+
     draw() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
         ctx.fillStyle = '#38bdf8';
         ctx.fill();
     }
-    // Update particle position
+
     update() {
         if (this.x > canvas.width || this.x < 0) {
             this.directionX = -this.directionX;
@@ -45,7 +44,7 @@ function init() {
         let size = (Math.random() * 2) + 1;
         let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
         let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
-        let directionX = (Math.random() * 2) - 1; // Speed
+        let directionX = (Math.random() * 2) - 1;
         let directionY = (Math.random() * 2) - 1;
         let color = '#38bdf8';
         particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
@@ -55,20 +54,17 @@ function init() {
 function animate() {
     requestAnimationFrame(animate);
     ctx.clearRect(0, 0, innerWidth, innerHeight);
-
     for (let i = 0; i < particlesArray.length; i++) {
         particlesArray[i].update();
     }
     connect();
 }
 
-// Connect particles with lines
 function connect() {
     let opacityValue = 1;
     for (let a = 0; a < particlesArray.length; a++) {
         for (let b = a; b < particlesArray.length; b++) {
-            let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + 
-                           ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+            let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x)) + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
             if (distance < (canvas.width/7) * (canvas.height/7)) {
                 opacityValue = 1 - (distance / 20000);
                 ctx.strokeStyle = 'rgba(56, 189, 248,' + opacityValue + ')';
@@ -91,29 +87,12 @@ window.addEventListener('resize', () => {
 init();
 animate();
 
-// 2. Scroll Reveal Animation (Intersection Observer)
-const observerOptions = {
-    threshold: 0.1
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('show');
-        }
-    });
-}, observerOptions);
-
-const hiddenElements = document.querySelectorAll('.hidden');
-hiddenElements.forEach((el) => observer.observe(el));
-
-// 3. Mobile Menu Toggle
+// 2. Mobile Menu Toggle
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
 
 hamburger.addEventListener('click', () => {
-    const currentDisplay = navLinks.style.display;
-    if(currentDisplay === 'flex') {
+    if (navLinks.style.display === 'flex') {
         navLinks.style.display = 'none';
     } else {
         navLinks.style.display = 'flex';
@@ -127,40 +106,44 @@ hamburger.addEventListener('click', () => {
         navLinks.style.textAlign = 'center';
     }
 });
-// 4. Animate Skill Bars on Scroll
-const skillBarsObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+
+// 3. Unified Scroll Reveal & Skill Animation (FIXED)
+// Combined the duplicate observers into one to prevent crashing
+const revealOptions = {
+    threshold: 0.1
+};
+
+const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
         if (entry.isIntersecting) {
-            // Animate progress bars
-            const progressFills = entry.target.querySelectorAll('.progress-fill');
-            progressFills.forEach(fill => {
-                const width = fill.getAttribute('data-width');
-                fill.style.setProperty('--skill-width', width + '%');
-                fill.classList.add('animated');
-            });
+            // Handle generic hidden items (Titles, Cards, Timelines)
+            if (entry.target.classList.contains('hidden')) {
+                entry.target.classList.add('show');
+                // Optional: Stop observing once shown to save resources
+                // revealObserver.unobserve(entry.target); 
+            }
             
-            // Animate learning fills
-            const learningFills = entry.target.querySelectorAll('.learning-fill');
-            learningFills.forEach(fill => {
-                const width = fill.getAttribute('data-width');
-                fill.style.setProperty('--learning-width', width + '%');
-                fill.classList.add('animated');
-            });
+            // Handle Skill Bars specifically
+            if (entry.target.classList.contains('skill-bars-container')) {
+                const progressFills = entry.target.querySelectorAll('.progress-fill');
+                progressFills.forEach(fill => {
+                    const width = fill.getAttribute('data-width');
+                    fill.style.setProperty('--skill-width', width + '%');
+                    fill.classList.add('animated');
+                });
+                
+                const learningFills = entry.target.querySelectorAll('.learning-fill');
+                learningFills.forEach(fill => {
+                    const width = fill.getAttribute('data-width');
+                    fill.style.setProperty('--learning-width', width + '%');
+                    fill.classList.add('animated');
+                });
+            }
         }
     });
-}, { threshold: 0.3 });
+}, revealOptions);
 
-const skillBarsContainer = document.querySelector('.skill-bars-container');
-if (skillBarsContainer) {
-    skillBarsObserver.observe(skillBarsContainer);
-}
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if(entry.isIntersecting){
-            entry.target.classList.remove('hidden');
-            observer.unobserve(entry.target);
-        }
-    });
-}, { threshold: 0.1 });
-
-document.querySelectorAll('.hidden').forEach(el => observer.observe(el));
+// Observe all elements that need animation
+document.querySelectorAll('.hidden, .skill-bars-container').forEach((el) => {
+    revealObserver.observe(el);
+});
