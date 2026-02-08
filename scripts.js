@@ -154,3 +154,13 @@ const skillBarsContainer = document.querySelector('.skill-bars-container');
 if (skillBarsContainer) {
     skillBarsObserver.observe(skillBarsContainer);
 }
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if(entry.isIntersecting){
+            entry.target.classList.remove('hidden');
+            observer.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.hidden').forEach(el => observer.observe(el));
