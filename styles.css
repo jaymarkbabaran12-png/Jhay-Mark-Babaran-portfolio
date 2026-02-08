@@ -590,6 +590,7 @@ footer p {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* HIDDEN & SHOW CLASSES (CRITICAL FIX) */
 .hidden {
     opacity: 0;
     transform: translateY(30px);
@@ -597,7 +598,7 @@ footer p {
 }
 
 .show {
-    opacity: 1;
+    opacity: 1 !important; /* Added !important to force visibility */
     transform: translateY(0);
 }
 
